@@ -1,0 +1,4 @@
+project_id = "pyutrizoyovddvievbms"
+
+[functions.process-lecture]
+verify_jwt = false
