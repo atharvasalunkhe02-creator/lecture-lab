@@ -94,12 +94,24 @@ serve(async (req) => {
     const aiData = await aiResponse.json();
     const raw = aiData.choices?.[0]?.message?.content || "";
 
-    // Parse JSON from the AI response (strip potential code fences)
-    const cleaned = raw.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
+    // Robust JSON extraction
     let parsed: any;
     try {
-      parsed = JSON.parse(cleaned);
-    } catch {
+      let cleaned = raw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+      const jsonStart = cleaned.search(/[\{\[]/);
+      const jsonEnd = cleaned.lastIndexOf(jsonStart !== -1 && cleaned[jsonStart] === '[' ? ']' : '}');
+      if (jsonStart === -1 || jsonEnd === -1) throw new Error("No JSON found");
+      cleaned = cleaned.substring(jsonStart, jsonEnd + 1);
+      try {
+        parsed = JSON.parse(cleaned);
+      } catch {
+        cleaned = cleaned
+          .replace(/,\s*}/g, "}")
+          .replace(/,\s*]/g, "]")
+          .replace(/[\x00-\x1F\x7F]/g, " ");
+        parsed = JSON.parse(cleaned);
+      }
+    } catch (e) {
       console.error("Failed to parse AI output:", raw);
       throw new Error("AI returned invalid format. Please try again.");
     }
