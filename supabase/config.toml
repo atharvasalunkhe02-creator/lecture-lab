@@ -2,3 +2,6 @@ project_id = "pyutrizoyovddvievbms"
 
 [functions.process-lecture]
 verify_jwt = false
+
+[functions.doubt-solver]
+verify_jwt = false
