@@ -14,7 +14,190 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      learning_progress: {
+        Row: {
+          created_at: string
+          id: string
+          last_practiced: string | null
+          mastery_level: number | null
+          questions_attempted: number | null
+          questions_correct: number | null
+          topic: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_practiced?: string | null
+          mastery_level?: number | null
+          questions_attempted?: number | null
+          questions_correct?: number | null
+          topic: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_practiced?: string | null
+          mastery_level?: number | null
+          questions_attempted?: number | null
+          questions_correct?: number | null
+          topic?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      lectures: {
+        Row: {
+          created_at: string
+          id: string
+          mindmap: string | null
+          quiz: Json | null
+          summary: string | null
+          title: string | null
+          url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mindmap?: string | null
+          quiz?: Json | null
+          summary?: string | null
+          title?: string | null
+          url: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mindmap?: string | null
+          quiz?: Json | null
+          summary?: string | null
+          title?: string | null
+          url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      quiz_answers: {
+        Row: {
+          correct_option: number
+          difficulty: string | null
+          id: string
+          is_correct: boolean
+          question_index: number
+          question_text: string
+          selected_option: number | null
+          session_id: string
+          time_spent_seconds: number | null
+          topic: string | null
+        }
+        Insert: {
+          correct_option: number
+          difficulty?: string | null
+          id?: string
+          is_correct: boolean
+          question_index: number
+          question_text: string
+          selected_option?: number | null
+          session_id: string
+          time_spent_seconds?: number | null
+          topic?: string | null
+        }
+        Update: {
+          correct_option?: number
+          difficulty?: string | null
+          id?: string
+          is_correct?: boolean
+          question_index?: number
+          question_text?: string
+          selected_option?: number | null
+          session_id?: string
+          time_spent_seconds?: number | null
+          topic?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_answers_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_sessions: {
+        Row: {
+          correct_answers: number
+          created_at: string
+          difficulty: string | null
+          duration_seconds: number | null
+          id: string
+          lecture_id: string | null
+          score_percentage: number | null
+          topic_scores: Json | null
+          total_questions: number
+          user_id: string
+        }
+        Insert: {
+          correct_answers?: number
+          created_at?: string
+          difficulty?: string | null
+          duration_seconds?: number | null
+          id?: string
+          lecture_id?: string | null
+          score_percentage?: number | null
+          topic_scores?: Json | null
+          total_questions?: number
+          user_id: string
+        }
+        Update: {
+          correct_answers?: number
+          created_at?: string
+          difficulty?: string | null
+          duration_seconds?: number | null
+          id?: string
+          lecture_id?: string | null
+          score_percentage?: number | null
+          topic_scores?: Json | null
+          total_questions?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_sessions_lecture_id_fkey"
+            columns: ["lecture_id"]
+            isOneToOne: false
+            referencedRelation: "lectures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
