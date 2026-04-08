@@ -68,60 +68,24 @@ serve(async (req) => {
     const isVideo = isVideoUrl(url);
     const isYT = isYouTubeUrl(url);
 
-    // For video files, use Gemini multimodal with the video URL
+    // For video files uploaded to storage
     if (isVideo) {
-      console.log("Processing video URL via multimodal:", url);
-
-      const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
-            { role: "system", content: SYSTEM_PROMPT },
-            {
-              role: "user",
-              content: [
-                {
-                  type: "text",
-                  text: `Analyze this lecture video thoroughly and generate comprehensive educational materials. Watch/analyze the entire video content.`,
-                },
-                {
-                  type: "image_url",
-                  image_url: { url },
-                },
-              ],
-            },
-          ],
-        }),
-      });
-
-      if (!aiResponse.ok) {
-        const status = aiResponse.status;
-        if (status === 429) {
-          return new Response(
-            JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-        if (status === 402) {
-          return new Response(
-            JSON.stringify({ error: "AI credits exhausted. Please add more credits." }),
-            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-        const errText = await aiResponse.text();
-        console.error("Multimodal AI error:", status, errText);
-        
-        // Fallback: try text-only with URL context
-        console.log("Falling back to text-only analysis...");
-        return await processWithText(url, LOVABLE_API_KEY, `This is a video lecture uploaded at: ${url}. The video could not be analyzed directly. Based on the filename and any context from the URL, generate educational materials. If you cannot determine the content, create a general analysis noting this was a video upload and suggest the user try with a text-based source for better results.`);
-      }
-
-      return parseAndRespond(aiResponse);
+      console.log("Processing video URL:", url);
+      
+      // The AI gateway cannot directly analyze video files from URLs.
+      // We inform the user about limitations and generate based on filename context.
+      const filename = decodeURIComponent(url.split("/").pop()?.split("?")[0] || "video");
+      
+      return await processWithText(url, LOVABLE_API_KEY, 
+        `A user uploaded a video lecture file named "${filename}" for educational analysis. ` +
+        `The video file URL is: ${url}\n\n` +
+        `IMPORTANT: Since I cannot directly watch this video file, analyze it based on whatever context ` +
+        `the filename and URL provide. Extract any topic hints from the filename. ` +
+        `Generate useful, general educational materials about the likely subject matter. ` +
+        `In the summary, include a note at the top: "⚠️ **Note:** This summary was generated from the video filename context. ` +
+        `For more accurate results, try pasting a YouTube link or article URL instead of uploading a video file directly."\n\n` +
+        `Generate the best educational content you can based on available context.`
+      );
     }
 
     // For non-video URLs, extract text content
