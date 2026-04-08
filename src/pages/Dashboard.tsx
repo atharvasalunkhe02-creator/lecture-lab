@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { BarChart3, Trophy, Target, BookOpen, Clock, TrendingUp, ArrowLeft } from "lucide-react";
+import { BarChart3, Trophy, Target, BookOpen, Clock, TrendingUp, ArrowLeft, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
 interface LectureRecord {
   id: string;
@@ -70,7 +71,25 @@ const Dashboard = () => {
   const totalTime = sessions.reduce((sum, s) => sum + (s.duration_seconds || 0), 0);
 
   const weakTopics = progress.filter((p) => p.mastery_level < 50);
-  const strongTopics = progress.filter((p) => p.mastery_level >= 70);
+
+  // Score trend data
+  const scoreTrend = sessions
+    .slice()
+    .reverse()
+    .slice(-10)
+    .map((s, i) => ({
+      quiz: `#${i + 1}`,
+      score: Number(s.score_percentage),
+    }));
+
+  // Recommendations based on weak topics
+  const recommendations = weakTopics.slice(0, 3).map((t) => ({
+    topic: t.topic,
+    mastery: Number(t.mastery_level),
+    suggestion: Number(t.mastery_level) < 25
+      ? `Focus on fundamentals of ${t.topic}. Review lecture notes and retry easy-level quizzes.`
+      : `Practice more ${t.topic} questions at medium difficulty to strengthen understanding.`,
+  }));
 
   if (loading) {
     return (
@@ -116,6 +135,37 @@ const Dashboard = () => {
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
+          {/* Score Trend Chart */}
+          {scoreTrend.length >= 2 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="p-6 rounded-xl border border-border bg-card md:col-span-2"
+            >
+              <h3 className="font-semibold flex items-center gap-2 mb-4">
+                <TrendingUp className="w-4 h-4 text-primary" />
+                Score Trend
+              </h3>
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={scoreTrend}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 18% 18%)" />
+                  <XAxis dataKey="quiz" tick={{ fontSize: 12, fill: "hsl(220 10% 55%)" }} />
+                  <YAxis domain={[0, 100]} tick={{ fontSize: 12, fill: "hsl(220 10% 55%)" }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(220 22% 10%)",
+                      border: "1px solid hsl(220 18% 18%)",
+                      borderRadius: "0.5rem",
+                      fontSize: "0.875rem",
+                    }}
+                  />
+                  <Line type="monotone" dataKey="score" stroke="hsl(38 92% 50%)" strokeWidth={2} dot={{ fill: "hsl(38 92% 50%)", r: 4 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </motion.div>
+          )}
+
           {/* Topic Mastery */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -154,7 +204,7 @@ const Dashboard = () => {
             )}
           </motion.div>
 
-          {/* Recent Activity */}
+          {/* Recent Quiz Scores */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -162,7 +212,7 @@ const Dashboard = () => {
             className="p-6 rounded-xl border border-border bg-card"
           >
             <h3 className="font-semibold flex items-center gap-2 mb-4">
-              <TrendingUp className="w-4 h-4 text-primary" />
+              <Trophy className="w-4 h-4 text-primary" />
               Recent Quiz Scores
             </h3>
             {sessions.length === 0 ? (
@@ -184,8 +234,34 @@ const Dashboard = () => {
             )}
           </motion.div>
 
+          {/* AI Recommendations */}
+          {recommendations.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="p-6 rounded-xl border border-primary/20 bg-primary/5 md:col-span-2"
+            >
+              <h3 className="font-semibold flex items-center gap-2 mb-4 text-primary">
+                <Lightbulb className="w-4 h-4" />
+                Personalized Recommendations
+              </h3>
+              <div className="space-y-3">
+                {recommendations.map((r) => (
+                  <div key={r.topic} className="p-4 rounded-xl bg-card border border-border">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-medium text-sm">{r.topic}</span>
+                      <span className="text-xs text-destructive font-bold">{r.mastery}% mastery</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{r.suggestion}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
           {/* Weak Areas */}
-          {weakTopics.length > 0 && (
+          {weakTopics.length > 0 && recommendations.length === 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
