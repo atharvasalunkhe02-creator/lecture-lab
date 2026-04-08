@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import HeroSection from "@/components/HeroSection";
 import ResultsSection from "@/components/ResultsSection";
+import ProcessingIndicator from "@/components/ProcessingIndicator";
 import { QuizQuestion, QuizResults } from "@/components/QuizView";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,10 +13,12 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [lectureId, setLectureId] = useState<string | null>(null);
   const [results, setResults] = useState<{
+    title: string;
     summary: string;
     mindmap: string;
     quiz: QuizQuestion[];
     topics: string[];
+    notes: string;
     url: string;
   } | null>(null);
 
@@ -44,14 +47,15 @@ const Index = () => {
 
       const data = await resp.json();
       setResults({
+        title: data.title || "Untitled Lecture",
         summary: data.summary,
         mindmap: data.mindmap,
         quiz: data.quiz,
         topics: data.topics || [],
+        notes: data.notes || "",
         url,
       });
 
-      // Save to DB if authenticated
       if (user) {
         const { data: lectureData } = await supabase
           .from("lectures")
@@ -98,7 +102,6 @@ const Index = () => {
         .single();
 
       if (sessionData) {
-        // Save individual answers
         const answerRows = quizResults.answers.map((a) => ({
           session_id: sessionData.id,
           question_index: a.questionIndex,
@@ -111,7 +114,6 @@ const Index = () => {
         }));
         await supabase.from("quiz_answers").insert(answerRows);
 
-        // Update learning progress per topic
         for (const [topic, scores] of Object.entries(quizResults.topicScores)) {
           const { data: existing } = await supabase
             .from("learning_progress")
@@ -153,12 +155,15 @@ const Index = () => {
   return (
     <main className="min-h-screen bg-background pt-14">
       <HeroSection onSubmit={handleSubmit} isLoading={isLoading} />
+      <ProcessingIndicator isLoading={isLoading} />
       {results && (
         <ResultsSection
           summary={results.summary}
           mindmap={results.mindmap}
           quiz={results.quiz}
           topics={results.topics}
+          notes={results.notes}
+          title={results.title}
           onQuizComplete={handleQuizComplete}
         />
       )}
