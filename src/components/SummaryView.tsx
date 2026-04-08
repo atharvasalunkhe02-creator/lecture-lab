@@ -7,6 +7,7 @@ interface SummaryViewProps {
 }
 
 const SummaryView = ({ markdown }: SummaryViewProps) => {
+  const content = typeof markdown === "string" ? markdown : JSON.stringify(markdown, null, 2);
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -20,7 +21,7 @@ const SummaryView = ({ markdown }: SummaryViewProps) => {
         prose-ul:text-muted-foreground prose-ol:text-muted-foreground
         prose-a:text-primary prose-a:no-underline hover:prose-a:underline"
     >
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
     </motion.div>
   );
 };

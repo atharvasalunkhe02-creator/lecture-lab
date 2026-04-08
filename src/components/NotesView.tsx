@@ -10,8 +10,9 @@ interface NotesViewProps {
 }
 
 const NotesView = ({ notes, title }: NotesViewProps) => {
+  const content = typeof notes === "string" ? notes : typeof notes === "object" && notes ? JSON.stringify(notes, null, 2) : "";
   const handleExport = () => {
-    const blob = new Blob([`# ${title || "Lecture Notes"}\n\n${notes}`], { type: "text/markdown" });
+    const blob = new Blob([`# ${title || "Lecture Notes"}\n\n${content}`], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -20,7 +21,7 @@ const NotesView = ({ notes, title }: NotesViewProps) => {
     URL.revokeObjectURL(url);
   };
 
-  if (!notes) {
+  if (!content) {
     return (
       <div className="text-center py-12">
         <BookMarked className="w-12 h-12 mx-auto text-muted-foreground/40 mb-3" />
@@ -51,7 +52,7 @@ const NotesView = ({ notes, title }: NotesViewProps) => {
           prose-th:bg-muted prose-th:p-2 prose-th:text-left
           prose-td:p-2 prose-td:border-t prose-td:border-border"
       >
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>{notes}</ReactMarkdown>
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
       </div>
     </motion.div>
   );
