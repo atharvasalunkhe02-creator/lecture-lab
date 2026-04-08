@@ -231,14 +231,21 @@ async function parseAndRespond(aiResponse: Response) {
     throw new Error("AI returned invalid format. Please try again.");
   }
 
+  // Ensure all string fields are actually strings
+  const ensureString = (val: any, fallback: string): string => {
+    if (typeof val === "string") return val;
+    if (val && typeof val === "object") return JSON.stringify(val, null, 2);
+    return fallback;
+  };
+
   return new Response(
     JSON.stringify({
-      title: parsed.title || "Untitled Lecture",
-      summary: parsed.summary || "No summary generated.",
-      mindmap: parsed.mindmap || "graph TD\n  A[No Data]",
+      title: ensureString(parsed.title, "Untitled Lecture"),
+      summary: ensureString(parsed.summary, "No summary generated."),
+      mindmap: ensureString(parsed.mindmap, "graph TD\n  A[No Data]"),
       quiz: Array.isArray(parsed.quiz) ? parsed.quiz : [],
       topics: Array.isArray(parsed.topics) ? parsed.topics : [],
-      notes: parsed.notes || "",
+      notes: ensureString(parsed.notes, ""),
     }),
     { headers: { ...corsHeaders, "Content-Type": "application/json" } }
   );
