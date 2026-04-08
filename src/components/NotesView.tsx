@@ -10,8 +10,9 @@ interface NotesViewProps {
 }
 
 const NotesView = ({ notes, title }: NotesViewProps) => {
+  const content = typeof notes === "string" ? notes : typeof notes === "object" && notes ? JSON.stringify(notes, null, 2) : "";
   const handleExport = () => {
-    const blob = new Blob([`# ${title || "Lecture Notes"}\n\n${notes}`], { type: "text/markdown" });
+    const blob = new Blob([`# ${title || "Lecture Notes"}\n\n${content}`], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
