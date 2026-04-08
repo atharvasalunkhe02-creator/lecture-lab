@@ -21,7 +21,7 @@ const NotesView = ({ notes, title }: NotesViewProps) => {
     URL.revokeObjectURL(url);
   };
 
-  if (!notes) {
+  if (!content) {
     return (
       <div className="text-center py-12">
         <BookMarked className="w-12 h-12 mx-auto text-muted-foreground/40 mb-3" />
