@@ -52,7 +52,7 @@ const NotesView = ({ notes, title }: NotesViewProps) => {
           prose-th:bg-muted prose-th:p-2 prose-th:text-left
           prose-td:p-2 prose-td:border-t prose-td:border-border"
       >
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>{notes}</ReactMarkdown>
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
       </div>
     </motion.div>
   );
